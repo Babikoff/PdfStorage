@@ -27,16 +27,23 @@ namespace PdfStorageWebApi.Controllers
     {
         private readonly IDocumentStorageRepository _repository;
         private readonly IMapper _mapper;
+        private readonly IPdfTextExtractor _pdfTextExtractor;
         private readonly ILogger<DocumentsStorageController> _logger;
 
-        public DocumentsStorageController(IDocumentStorageRepository repository, IMapper mapper, ILogger<DocumentsStorageController> logger)
+        public DocumentsStorageController(
+            IDocumentStorageRepository repository, 
+            IMapper mapper,
+            IPdfTextExtractor pdfTextExtractor,
+            ILogger<DocumentsStorageController> logger
+            )
         {
             _repository = repository;
             _mapper = mapper;
+            _pdfTextExtractor = pdfTextExtractor;
             _logger = logger;
         }
 
-        [HttpGet("")]
+        [HttpGet("/DocumentText")]
         public async Task<IActionResult> Get([FromQuery]QueryParameters queryParameters) 
         {
             var pdfFiles = 
@@ -56,15 +63,15 @@ namespace PdfStorageWebApi.Controllers
                 return NotFound();
             }
 
-            return Ok(pdfFile);
+            return Ok(_pdfTextExtractor.ExtractText(pdfFile.Data));
         }
 
-        [HttpPost("/UploadLargeDocument")]
+        [HttpPost("/UploadDocument")]
         [Consumes("multipart/form-data")]
         [RequestSizeLimit(Constants.MaxDocumentSize)]
         [RequestFormLimits(MultipartBodyLengthLimit = Constants.MaxDocumentSize)]
         public async Task<ActionResult<NewDocumentDto>> Upload(
-            /*[FromForm]*/ IFormFile file,
+            IFormFile file,
             CancellationToken cancellationToken
             )
         {

@@ -23,6 +23,7 @@ using Repository;
 using PdfStorageWebApi.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using WebApiCommon;
+using PdfService;
 
 namespace PdfStorageWebApi
 {
@@ -46,6 +47,7 @@ namespace PdfStorageWebApi
             services.AddAntiforgery();
 
             services.AddScoped<IDocumentStorageRepository, DocumentStorageRepository>();
+            services.AddScoped<IPdfTextExtractor, PdfTextExtractor>();
 
             services.AddAutoMapper(typeof(MappingProfile));
 
