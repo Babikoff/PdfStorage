@@ -39,7 +39,11 @@ namespace PdfStorageWebApi.Controllers
         [HttpGet("")]
         public async Task<IActionResult> Get([FromQuery]QueryParameters queryParameters) 
         {
-            var pdfFiles = await _repository.BrowseAsync(queryParameters.Size, queryParameters.Page, queryParameters.SortBy, queryParameters.SortOrder);
+            var pdfFiles = 
+                _mapper.Map<IEnumerable<DocumentListItemDto>>(
+                    await _repository.BrowseAsync(queryParameters.Size, queryParameters.Page, queryParameters.SortBy, queryParameters.SortOrder)
+                    );
+
             return Ok(pdfFiles);
         }
 

@@ -11,6 +11,7 @@ namespace PdfStorageWebApi
         {
             CreateMap<NewDocumentDto, Document>();
             CreateMap<Document, NewDocumentResponseDto>();
+            CreateMap<Document, DocumentListItemDto>();
         }
     }
 }

@@ -1,10 +1,11 @@
 ﻿using Domain;
 using System;
-using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
+using System.Text;
 
-namespace DTO.Queue
+namespace DTO.WebApi
 {
-    public record NewDocumentDto
+    public record DocumentListItemDto
     {
         public Guid Id { get; set; }
 

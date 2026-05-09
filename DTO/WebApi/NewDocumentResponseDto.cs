@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace DTO.WebApi
 {
-    public class NewDocumentResponseDto
+    public record NewDocumentResponseDto
     {
         public Guid Id { get; set; }
 
