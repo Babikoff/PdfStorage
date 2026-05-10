@@ -1,2 +1,2 @@
--- Create the pdfStorage database
-CREATE DATABASE pdfStorage;
+-- Create the documentsStorage database
+CREATE DATABASE documentsStorage;

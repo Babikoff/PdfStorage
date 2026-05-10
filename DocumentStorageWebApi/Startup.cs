@@ -20,12 +20,12 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi;
 using Repository;
-using PdfStorageWebApi.Swagger;
+using DocumentStorageWebApi.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using WebApiCommon;
 using PdfService;
 
-namespace PdfStorageWebApi
+namespace DocumentStorageWebApi
 {
     public class Startup
     {
@@ -49,7 +49,7 @@ namespace PdfStorageWebApi
             services.AddScoped<IDocumentStorageRepository, DocumentStorageRepository>();
             services.AddScoped<IPdfTextExtractor, PdfTextExtractor>();
 
-            services.AddAutoMapper(typeof(MappingProfile));
+            services.AddAutoMapper(cfg => { }, typeof(MappingProfile));
 
             services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 

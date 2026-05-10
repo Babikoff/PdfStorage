@@ -3,7 +3,7 @@ using Domain;
 using DTO.Queue;
 using DTO.WebApi;
 
-namespace PdfStorageWebApi
+namespace DocumentStorageWebApi
 {
     public class MappingProfile : Profile
     {

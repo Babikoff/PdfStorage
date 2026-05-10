@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace PdfStorageWebApi
+namespace DocumentStorageWebApi
 {
     public class DbInitializer
     {

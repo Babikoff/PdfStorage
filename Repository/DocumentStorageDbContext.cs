@@ -13,5 +13,11 @@ namespace Repository
         }
 
         public DbSet<Document> Documents { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.ApplyConfiguration(new DocumentConfiguration());
+        }
     }
 }

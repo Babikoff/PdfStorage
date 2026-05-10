@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.37203.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PdfStorageWebApi", "PdfStorageWebApi\PdfStorageWebApi.csproj", "{2FC751C5-9C20-49FD-A9C7-369E4227C6AD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocumentStorageWebApi", "DocumentStorageWebApi\DocumentStorageWebApi.csproj", "{2FC751C5-9C20-49FD-A9C7-369E4227C6AD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApiCommon", "WebApiCommon\WebApiCommon.csproj", "{39A266B6-CCA3-4C29-9367-1A76AA236B5D}"
 EndProject
@@ -15,9 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DTO", "DTO\DTO.csproj", "{0
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{8695A8C0-3F48-44FA-9EF1-D40B16DE8BCD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "..\Common\Common.csproj", "{EAFA6428-100F-4BEE-8866-9F958CA9F9D7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{EAFA6428-100F-4BEE-8866-9F958CA9F9D7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PdfService", "..\PdfService\PdfService.csproj", "{AF8391D4-F77C-443F-B3B5-7DDFA89F054A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PdfService", "PdfService\PdfService.csproj", "{AF8391D4-F77C-443F-B3B5-7DDFA89F054A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

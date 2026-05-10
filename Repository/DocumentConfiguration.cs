@@ -30,6 +30,10 @@ namespace Repository
                 .HasColumnType("bytea")
                 .IsRequired();
 
+            builder.Property(x => x.FileName)
+                .HasColumnName("file_name")
+                .HasColumnType("text");
+
             builder.Property(x => x.FileType)
                 .HasColumnName("file_type")
                 .HasColumnType("smallint")
@@ -41,8 +45,8 @@ namespace Repository
 
             builder.Property(x => x.CreatedAt)
                 .HasColumnName("created_at")
-                .HasColumnType("timestampz")
-                .HasDefaultValue("now()");
+                .HasColumnType("timestamptz")
+                .HasDefaultValueSql("now()");
         }
     }
 }

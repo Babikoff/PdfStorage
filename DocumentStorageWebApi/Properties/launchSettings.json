@@ -17,7 +17,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "PdfStorageWebApi": {
+    "DocumentStorageWebApi": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "swagger",

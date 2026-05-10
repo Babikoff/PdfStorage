@@ -11,7 +11,7 @@ using NLog;
 using NLog.Web;
 using Repository;
 
-namespace PdfStorageWebApi
+namespace DocumentStorageWebApi
 {
     public class Program
     {

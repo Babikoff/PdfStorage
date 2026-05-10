@@ -9,16 +9,16 @@ EXPOSE 80
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
-COPY ["PdfStorageWebApi/PdfStorageWebApi.csproj", "PdfStorageWebApi/"]
-RUN dotnet restore "PdfStorageWebApi/PdfStorageWebApi.csproj"
+COPY ["DocumentStorageWebApi/DocumentStorageWebApi.csproj", "DocumentStorageWebApi/"]
+RUN dotnet restore "DocumentStorageWebApi/DocumentStorageWebApi.csproj"
 COPY . .
-WORKDIR "/src/PdfStorageWebApi"
-RUN dotnet build "PdfStorageWebApi.csproj" -c Release -o /app/build
+WORKDIR "/src/DocumentStorageWebApi"
+RUN dotnet build "DocumentStorageWebApi.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "PdfStorageWebApi.csproj" -c Release -o /app/publish
+RUN dotnet publish "DocumentStorageWebApi.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "PdfStorageWebApi.dll"]
+ENTRYPOINT ["dotnet", "DocumentStorageWebApi.dll"]

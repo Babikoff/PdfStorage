@@ -6,7 +6,7 @@
     <ProjectGuid>8695a8c0-3f48-44fa-9ef1-d40b16de8bcd</ProjectGuid>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
     <DockerServiceUrl>{Scheme}://localhost:{ServicePort}/swagger</DockerServiceUrl>
-    <DockerServiceName>pdfstorage-web-api</DockerServiceName>
+    <DockerServiceName>documentstorage-web-api</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
     <None Include="docker-compose.yml" />
