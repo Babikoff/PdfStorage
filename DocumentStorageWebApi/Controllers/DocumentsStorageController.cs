@@ -43,30 +43,77 @@ namespace DocumentStorageWebApi.Controllers
             _logger = logger;
         }
 
-        [HttpGet("/DocumentText")]
+        [HttpGet("")]
         public async Task<IActionResult> Get([FromQuery]QueryParameters queryParameters) 
         {
-            var pdfFiles = 
-                _mapper.Map<IEnumerable<DocumentListItemDto>>(
-                    await _repository.BrowseAsync(queryParameters.Size, queryParameters.Page, queryParameters.SortBy, queryParameters.SortOrder)
-                    );
+            try
+            {
+                var documents = 
+                    _mapper.Map<IEnumerable<DocumentListItemDto>>(
+                        await _repository.BrowseAsync(queryParameters.Size, queryParameters.Page, queryParameters.SortBy, queryParameters.SortOrder)
+                        );
 
-            return Ok(pdfFiles);
+                return Ok(documents);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while browsing documents");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Ошибка сервера при получении списка документов." });
+            }
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(Guid id)
         {
-            var pdfFile = await _repository.GetAsync(id);
-            if (pdfFile == null)
+            try
             {
-                return NotFound();
-            }
+                var document = await _repository.GetAsync(id);
+                if (document == null)
+                {
+                    return NotFound();
+                }
 
-            return Ok(_pdfTextExtractor.ExtractText(pdfFile.Data));
+                return Ok(_mapper.Map<DocumentListItemDto>(document));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while getting document by id {DocumentId}", id);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Ошибка сервера при получении документа." });
+            }
         }
 
-        [HttpPost("/UploadDocument")]
+        [HttpGet("DocumentText/{id}")]
+        public async Task<IActionResult> GetDocumentText(Guid id)
+        {
+            try
+            {
+                var document = await _repository.GetAsync(id);
+                if (document == null)
+                {
+                    return NotFound();
+                }
+
+                switch (document.FileType) 
+                {
+                    case DocumentFileType.Pdf:
+                        return Ok(_pdfTextExtractor.ExtractText(document.Data));
+                    case DocumentFileType.Unknown:
+                        return StatusCode(
+                            StatusCodes.Status501NotImplemented, 
+                            new { message = "Операция не поддерживается для данного типа документов." }
+                            );
+                    default:
+                        return StatusCode(StatusCodes.Status500InternalServerError);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while extracting text from document {DocumentId}", id);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Ошибка сервера при извлечении текста документа." });
+            }
+        }
+
+        [HttpPost("UploadDocument")]
         [Consumes("multipart/form-data")]
         [RequestSizeLimit(Constants.MaxDocumentSize)]
         [RequestFormLimits(MultipartBodyLengthLimit = Constants.MaxDocumentSize)]
@@ -107,7 +154,7 @@ namespace DocumentStorageWebApi.Controllers
                 await _repository.AddAsync(newDocument);
 
                 var newDocumentDto =_mapper.Map<NewDocumentResponseDto>(newDocument);
-
+                
                 return CreatedAtAction(nameof(Get), new { id = newDocument.Id }, newDocumentDto);
             }
             catch (DbUpdateException ex)

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using WebApiCommon;
 
@@ -34,7 +35,7 @@ namespace Repository
 
             if (!string.IsNullOrWhiteSpace(sortBy))
             {
-                if (typeof(Document).GetProperty(sortBy) != null)
+                if (typeof(Document).GetProperty(sortBy, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase) != null)
                 {
                     documents = documents.OrderByCustom(sortBy, sortOrder);
                 }
