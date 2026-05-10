@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Common;
+using DocumentStorageWebApi.Controllers.Helpers;
 using Domain;
 using DTO.Queue;
 using DTO.WebApi;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using DocumentStorageWebApi.Controllers.Helpers;
+using RabbitMqService;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -25,18 +26,21 @@ namespace DocumentStorageWebApi.Controllers
     [ApiController]
     public class DocumentsStorageController : Controller
     {
+        private readonly IDocumentProcessingQueueService _queueService;
         private readonly IDocumentStorageRepository _repository;
         private readonly IMapper _mapper;
         private readonly IPdfTextExtractor _pdfTextExtractor;
         private readonly ILogger<DocumentsStorageController> _logger;
 
         public DocumentsStorageController(
+            IDocumentProcessingQueueService queueService,
             IDocumentStorageRepository repository, 
             IMapper mapper,
             IPdfTextExtractor pdfTextExtractor,
             ILogger<DocumentsStorageController> logger
             )
         {
+            _queueService = queueService;
             _repository = repository;
             _mapper = mapper;
             _pdfTextExtractor = pdfTextExtractor;
@@ -117,7 +121,7 @@ namespace DocumentStorageWebApi.Controllers
         [Consumes("multipart/form-data")]
         [RequestSizeLimit(Constants.MaxDocumentSize)]
         [RequestFormLimits(MultipartBodyLengthLimit = Constants.MaxDocumentSize)]
-        public async Task<ActionResult<NewDocumentDto>> Upload(
+        public async Task<ActionResult<QueueDocumentDto>> Upload(
             IFormFile file,
             CancellationToken cancellationToken
             )
@@ -131,9 +135,12 @@ namespace DocumentStorageWebApi.Controllers
                     new { message = $"Размер файла не должен превышать {Constants.MaxDocumentSize} байт." });
             }
 
+            //TODO: Sanitize/validate file name and ContentType 
             if (!string.Equals(file.ContentType, "application/pdf", StringComparison.OrdinalIgnoreCase)) {
                 return BadRequest(new { message = "Разрешена загрузка только Pdf-файлов." });
             }
+
+            _logger.LogTrace("Processing {FileName}.", file.FileName);
 
             const string serverErrorMessageToUser = "Ошибка сервера при загрузке файла";
             try
@@ -151,10 +158,11 @@ namespace DocumentStorageWebApi.Controllers
                     CreatedAt = DateTimeOffset.UtcNow
                 };
 
-                await _repository.AddAsync(newDocument);
+                await _queueService.PublishAsync(_mapper.Map<QueueDocumentDto>(newDocument), cancellationToken);
 
+                //TODO: изменить возвращаемый ответ. Добавить статус в документ InQueue, Processing/Processed/Inserted
                 var newDocumentDto =_mapper.Map<NewDocumentResponseDto>(newDocument);
-                
+                _logger.LogTrace("File {FileName} with Id={Id} added to the queue.", file.FileName, newDocumentDto.Id);
                 return CreatedAtAction(nameof(Get), new { id = newDocument.Id }, newDocumentDto);
             }
             catch (DbUpdateException ex)

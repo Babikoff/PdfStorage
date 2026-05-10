@@ -13,15 +13,12 @@ namespace Repository
     public class DocumentStorageRepository : IDocumentStorageRepository
     {
         private readonly DocumentStorageDbContext _context;
-        private readonly IMemoryCache _cache;
 
         public DocumentStorageRepository(
-            DocumentStorageDbContext context,
-            IMemoryCache cache
+            DocumentStorageDbContext context
             )
         {
             _context = context;
-            _cache = cache;
         }
 
         public async Task<Document> GetAsync(Guid id)

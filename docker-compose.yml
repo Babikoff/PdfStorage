@@ -29,7 +29,6 @@ services:
         limits:
           memory: 512M       # Limit RabbitMQ to 512 MB of RAM
 
-
   documentstorage-web-api:
     image: documentstorage-web-api:latest
     container_name: documentstorage-web-api
@@ -40,9 +39,16 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
       - ConnectionStrings__PostgresConnection=Host=postgres;Port=5432;Database=documentsStorage;Username=postgres;Password=123
+      - RabbitMQ__HostName=rabbitmq
+      - RabbitMQ__Port=5672
+      - RabbitMQ__UserName=rabbitmq
+      - RabbitMQ__Password=rabbitmq
+      - RabbitMQ__QueueName=document-files-queue
     depends_on:
       postgres:
         condition: service_healthy
+      rabbitmq:
+        condition: service_started
 
   background-file-reciever:
     image: background-file-reciever:latest

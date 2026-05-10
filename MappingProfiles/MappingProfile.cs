@@ -3,13 +3,14 @@ using Domain;
 using DTO.Queue;
 using DTO.WebApi;
 
-namespace DocumentStorageWebApi
+namespace MappingProfiles
 {
     public class MappingProfile : Profile
     {
         public MappingProfile()
         {
-            CreateMap<NewDocumentDto, Document>();
+            CreateMap<QueueDocumentDto, Document>();
+            CreateMap<Document, QueueDocumentDto>();
             CreateMap<Document, NewDocumentResponseDto>();
             CreateMap<Document, DocumentListItemDto>();
         }

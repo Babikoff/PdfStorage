@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
+using DocumentStorageWebApi.Swagger;
 using Domain;
 using DTO;
+using MappingProfiles;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -19,11 +16,16 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi;
-using Repository;
-using DocumentStorageWebApi.Swagger;
-using Swashbuckle.AspNetCore.SwaggerGen;
-using WebApiCommon;
 using PdfService;
+using RabbitMQ.Client;
+using Repository;
+using Swashbuckle.AspNetCore.SwaggerGen;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using WebApiCommon;
 
 namespace DocumentStorageWebApi
 {
@@ -36,7 +38,7 @@ namespace DocumentStorageWebApi
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
+        // Здесь добавляем сервисы в контейнейр.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<DocumentStorageDbContext>(options =>
@@ -48,6 +50,9 @@ namespace DocumentStorageWebApi
 
             services.AddScoped<IDocumentStorageRepository, DocumentStorageRepository>();
             services.AddScoped<IPdfTextExtractor, PdfTextExtractor>();
+
+            // Регистрация сервиса обмена данными
+            ReqisterQueueService(services);
 
             services.AddAutoMapper(cfg => { }, typeof(MappingProfile));
 
@@ -74,7 +79,34 @@ namespace DocumentStorageWebApi
             services.AddMemoryCache();
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        private static void ReqisterQueueService(IServiceCollection services)
+        {
+            // Регистрация RabbitMQ connection as singleton
+            services.AddSingleton<IConnection>(sp =>
+            {
+                var configuration = sp.GetRequiredService<IConfiguration>();
+                var factory = new ConnectionFactory
+                {
+                    HostName = configuration["RabbitMQ:HostName"] ?? "localhost",
+                    Port = int.Parse(configuration["RabbitMQ:Port"] ?? "5672"),
+                    UserName = configuration["RabbitMQ:UserName"] ?? "rabbitmq",
+                    Password = configuration["RabbitMQ:Password"] ?? "rabbitmq"
+                };
+                return factory.CreateConnectionAsync().GetAwaiter().GetResult();
+            });
+
+            // Регистрация RabbitMqService
+            services.AddSingleton<IDocumentProcessingQueueService>(sp =>
+            {
+                var connection = sp.GetRequiredService<IConnection>();
+                var configuration = sp.GetRequiredService<IConfiguration>();
+                var logger = sp.GetRequiredService<ILogger<RabbitMqService.RabbitMqService>>();
+                var queueName = configuration["RabbitMQ:QueueName"] ?? "document-files-queue";
+                return new RabbitMqService.RabbitMqService(connection, queueName, logger);
+            });
+        }
+
+        // Здесь конфигурируем HTTP.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IApiVersionDescriptionProvider provider)
         {
             if (env.IsDevelopment())

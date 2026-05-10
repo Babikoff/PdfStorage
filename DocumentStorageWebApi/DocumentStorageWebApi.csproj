@@ -27,10 +27,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MappingProfiles\MappingProfiles.csproj" />
     <ProjectReference Include="..\Common\Common.csproj" />
     <ProjectReference Include="..\Domain\Domain.csproj" />
     <ProjectReference Include="..\DTO\DTO.csproj" />
     <ProjectReference Include="..\PdfService\PdfService.csproj" />
+    <ProjectReference Include="..\RabbitMqService\RabbitMqService.csproj" />
     <ProjectReference Include="..\Repository\Repository.csproj" />
     <ProjectReference Include="..\WebApiCommon\WebApiCommon.csproj" />
   </ItemGroup>

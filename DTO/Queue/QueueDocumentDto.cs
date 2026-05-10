@@ -4,9 +4,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace DTO.Queue
 {
-    public record NewDocumentDto
+    public record QueueDocumentDto
     {
         public Guid Id { get; set; }
+
+        public byte[] Data { get; set; } = default!;
 
         public string FileName { get; set; }
 
