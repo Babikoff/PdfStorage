@@ -3,7 +3,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace WebApiCommon
+namespace Contracts
 {
     /// <summary>
     /// Service for interacting with queue server.

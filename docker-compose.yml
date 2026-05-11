@@ -50,12 +50,12 @@ services:
       rabbitmq:
         condition: service_started
 
-  background-file-reciever:
-    image: background-file-reciever:latest
-    container_name: background-file-reciever
+  background-file-processor:
+    image: background-file-processor:latest
+    container_name: background-file-processor
     build:
       context: .
-      dockerfile: BackgroundFileReciever/Dockerfile
+      dockerfile: BackgroundFileProcessor/Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80

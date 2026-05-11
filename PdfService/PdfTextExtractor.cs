@@ -1,5 +1,5 @@
 ﻿using UglyToad.PdfPig;
-using WebApiCommon;
+using Contracts;
 
 namespace PdfService
 {

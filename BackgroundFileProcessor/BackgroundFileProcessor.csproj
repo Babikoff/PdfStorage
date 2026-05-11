@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>dotnet-BackgroundFileReciever-302f1b7d-0d65-425d-b93c-d6fa885aa3d4</UserSecretsId>
+    <UserSecretsId>dotnet-BackgroundFileProcessor-302f1b7d-0d65-425d-b93c-d6fa885aa3d4</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
@@ -19,6 +19,6 @@
     <ProjectReference Include="..\PdfService\PdfService.csproj" />
     <ProjectReference Include="..\RabbitMqService\RabbitMqService.csproj" />
     <ProjectReference Include="..\Repository\Repository.csproj" />
-    <ProjectReference Include="..\WebApiCommon\WebApiCommon.csproj" />
+    <ProjectReference Include="..\Contracts\Contracts.csproj" />
   </ItemGroup>
 </Project>

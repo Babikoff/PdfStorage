@@ -3,7 +3,7 @@ using System.Text.Json;
 using DTO.Queue;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
-using WebApiCommon;
+using Contracts;
 
 namespace RabbitMqService
 {

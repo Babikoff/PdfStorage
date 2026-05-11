@@ -4,9 +4,9 @@ using DTO.Queue;
 using RabbitMqService;
 using Repository;
 using System.Reflection.Metadata;
-using WebApiCommon;
+using Contracts;
 
-namespace BackgroundFileReciever
+namespace BackgroundFileProcessor
 {
     public class Worker : BackgroundService
     {

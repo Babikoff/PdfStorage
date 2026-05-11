@@ -33,7 +33,7 @@
     <ProjectReference Include="..\DTO\DTO.csproj" />
     <ProjectReference Include="..\RabbitMqService\RabbitMqService.csproj" />
     <ProjectReference Include="..\Repository\Repository.csproj" />
-    <ProjectReference Include="..\WebApiCommon\WebApiCommon.csproj" />
+    <ProjectReference Include="..\Contracts\Contracts.csproj" />
   </ItemGroup>
 
 

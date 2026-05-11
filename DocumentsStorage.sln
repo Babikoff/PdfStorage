@@ -5,7 +5,7 @@ VisualStudioVersion = 17.14.37203.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocumentStorageWebApi", "DocumentStorageWebApi\DocumentStorageWebApi.csproj", "{2FC751C5-9C20-49FD-A9C7-369E4227C6AD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApiCommon", "WebApiCommon\WebApiCommon.csproj", "{39A266B6-CCA3-4C29-9367-1A76AA236B5D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Contracts", "Contracts\Contracts.csproj", "{39A266B6-CCA3-4C29-9367-1A76AA236B5D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain", "Domain\Domain.csproj", "{9838AB19-95B7-4AC6-B719-03C75D057D42}"
 EndProject
@@ -19,7 +19,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PdfService", "PdfService\PdfService.csproj", "{AF8391D4-F77C-443F-B3B5-7DDFA89F054A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BackgroundFileReciever", "BackgroundFileReciever\BackgroundFileReciever.csproj", "{A464EED4-A581-4861-B22D-4F344C7C2A1A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BackgroundFileProcessor", "BackgroundFileProcessor\BackgroundFileProcessor.csproj", "{A464EED4-A581-4861-B22D-4F344C7C2A1A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMqService", "RabbitMqService\RabbitMqService.csproj", "{303E15E2-3550-4479-AB37-38187C473656}"
 EndProject

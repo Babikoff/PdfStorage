@@ -1,4 +1,4 @@
-﻿using BackgroundFileReciever;
+﻿using BackgroundFileProcessor;
 using MappingProfiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -7,7 +7,7 @@ using PdfService;
 using RabbitMQ.Client;
 using RabbitMqService;
 using Repository;
-using WebApiCommon;
+using Contracts;
 
 var builder = Host.CreateApplicationBuilder(args);
 
