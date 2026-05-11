@@ -109,14 +109,14 @@ namespace RabbitMqService
                 }
                 catch (OperationCanceledException)
                 {
-                    // При штатном завершении отбрасываем сообщения с опцией повторной попытоки получения (при следующем запуске приложения)
+                    // При штатном завершении отбрасываем сообщения с опцией повторной попытки получения (при следующем запуске приложения)
                     await channel.BasicNackAsync(eventArgs.DeliveryTag, multiple: false, requeue: true, CancellationToken.None);
                     throw;
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error processing message from queue '{QueueName}'. DeliveryTag: {DeliveryTag}", _queueName, eventArgs.DeliveryTag);
-                    // При ошибке отбрасываем сообщения с опцией повторной попытоки получения 
+                    // При ошибке отбрасываем сообщения с опцией повторной попытки получения 
                     await channel.BasicNackAsync(eventArgs.DeliveryTag, multiple: false, requeue: true, CancellationToken.None);
                 }
             };

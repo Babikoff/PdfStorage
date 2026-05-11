@@ -1,8 +1,10 @@
 ﻿using BackgroundFileProcessor;
+using Common;
 using MappingProfiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using PdfService;
 using RabbitMQ.Client;
 using RabbitMqService;
@@ -17,27 +19,29 @@ builder.Services.AddDbContext<DocumentStorageDbContext>((sp, options) =>
     options.UseNpgsql(configuration.GetConnectionString("PostgresConnection"));
 });
 
+// Bind RabbitMQ config section to strongly-typed options
+builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection(RabbitMqOptions.SectionName));
+
 // Регистрация сервиса для очереди
 builder.Services.AddSingleton<IConnection>(sp =>
 {
-    var configuration = sp.GetRequiredService<IConfiguration>();
+    var options = sp.GetRequiredService<IOptions<RabbitMqOptions>>().Value;
     var factory = new ConnectionFactory
     {
-        HostName = configuration["RabbitMQ:HostName"] ?? "localhost",
-        Port = int.Parse(configuration["RabbitMQ:Port"] ?? "5672"),
-        UserName = configuration["RabbitMQ:UserName"] ?? "rabbitmq",
-        Password = configuration["RabbitMQ:Password"] ?? "rabbitmq"
+        HostName = options.HostName,
+        Port = options.Port,
+        UserName = options.UserName,
+        Password = options.Password
     };
-    return factory.CreateConnectionAsync().GetAwaiter().GetResult();
+    return factory.CreateConnectionAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 });
 
 builder.Services.AddSingleton<IDocumentProcessingQueueService>(sp =>
 {
     var connection = sp.GetRequiredService<IConnection>();
-    var configuration = sp.GetRequiredService<IConfiguration>();
+    var options = sp.GetRequiredService<IOptions<RabbitMqOptions>>().Value;
     var logger = sp.GetRequiredService<ILogger<RabbitMqService.RabbitMqService>>();
-    var queueName = configuration["RabbitMQ:QueueName"] ?? "document-files-queue";
-    return new RabbitMqService.RabbitMqService(connection, queueName, logger);
+    return new RabbitMqService.RabbitMqService(connection, options.QueueName, logger);
 });
 
 // Регистрация сервиса для долгосрочного хранения данных (базы данных)

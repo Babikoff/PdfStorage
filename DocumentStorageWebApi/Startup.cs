@@ -1,11 +1,11 @@
 ﻿using AutoMapper;
+using Common;
 using DocumentStorageWebApi.Swagger;
 using Domain;
 using DTO;
 using MappingProfiles;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Versioning;
@@ -15,16 +15,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.OpenApi;
 using RabbitMQ.Client;
 using Repository;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Contracts;
+using System.Linq;
 
 namespace DocumentStorageWebApi
 {
@@ -49,8 +44,11 @@ namespace DocumentStorageWebApi
 
             services.AddScoped<IDocumentStorageRepository, DocumentStorageRepository>();
 
-            // Регистрация сервиса обмена данными
-            ReqisterQueueService(services);
+            // Загрузка конфигурации сервиса очереди обмена данными
+            services.Configure<RabbitMqOptions>(Configuration.GetSection(RabbitMqOptions.SectionName));
+
+            // Регистрация сервиса очереди обмена данными
+            RegisterQueueService(services);
 
             services.AddAutoMapper(cfg => { }, typeof(MappingProfile));
 
@@ -77,30 +75,29 @@ namespace DocumentStorageWebApi
             services.AddMemoryCache();
         }
 
-        private static void ReqisterQueueService(IServiceCollection services)
+        private static void RegisterQueueService(IServiceCollection services)
         {
             // Регистрация RabbitMQ connection as singleton
             services.AddSingleton<IConnection>(sp =>
             {
-                var configuration = sp.GetRequiredService<IConfiguration>();
+                var options = sp.GetRequiredService<IOptions<RabbitMqOptions>>().Value;
                 var factory = new ConnectionFactory
                 {
-                    HostName = configuration["RabbitMQ:HostName"] ?? "localhost",
-                    Port = int.Parse(configuration["RabbitMQ:Port"] ?? "5672"),
-                    UserName = configuration["RabbitMQ:UserName"] ?? "rabbitmq",
-                    Password = configuration["RabbitMQ:Password"] ?? "rabbitmq"
+                    HostName = options.HostName,
+                    Port = options.Port,
+                    UserName = options.UserName,
+                    Password = options.Password
                 };
-                return factory.CreateConnectionAsync().GetAwaiter().GetResult();
+                return factory.CreateConnectionAsync().ConfigureAwait(false).GetAwaiter().GetResult();
             });
 
             // Регистрация RabbitMqService
             services.AddSingleton<IDocumentProcessingQueueService>(sp =>
             {
                 var connection = sp.GetRequiredService<IConnection>();
-                var configuration = sp.GetRequiredService<IConfiguration>();
+                var options = sp.GetRequiredService<IOptions<RabbitMqOptions>>().Value;
                 var logger = sp.GetRequiredService<ILogger<RabbitMqService.RabbitMqService>>();
-                var queueName = configuration["RabbitMQ:QueueName"] ?? "document-files-queue";
-                return new RabbitMqService.RabbitMqService(connection, queueName, logger);
+                return new RabbitMqService.RabbitMqService(connection, options.QueueName, logger);
             });
         }
 
