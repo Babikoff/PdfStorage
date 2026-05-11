@@ -27,8 +27,7 @@ namespace Repository
 
             builder.Property(x => x.FileText)
                 .HasColumnName("file_text")
-                .HasColumnType("bytea")
-                .IsRequired();
+                .HasColumnType("text");
 
             builder.Property(x => x.FileName)
                 .HasColumnName("file_name")
@@ -44,7 +43,7 @@ namespace Repository
                 .HasColumnType("bigint");
 
             builder.Property(x => x.RecievedAt)
-                .HasColumnName("created_at")
+                .HasColumnName("recieved_at")
                 .HasColumnType("timestamptz")
                 .HasDefaultValueSql("now()");
 
