@@ -9,9 +9,14 @@ namespace MappingProfiles
     {
         public MappingProfile()
         {
-            CreateMap<QueueDocumentDto, Document>();
+            CreateMap<QueueDocumentDto, Document>()
+                .ForMember(d => d.FileText, o => o.Ignore())
+                .ForMember(d => d.ProcessedAt, o => o.Ignore())
+                ;
+            CreateMap<Document, QueueDocumentDto>()
+                .ForMember(d => d.RawFileData, o => o.Ignore());
+
             CreateMap<QueueDocumentDto, NewDocumentResponseDto>();
-            CreateMap<Document, QueueDocumentDto>();
             CreateMap<Document, DocumentListItemDto>();
         }
     }
