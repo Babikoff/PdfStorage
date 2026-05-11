@@ -16,7 +16,7 @@ namespace RabbitMqService
         private readonly string _queueName;
         private readonly ILogger<RabbitMqService> _logger;
 
-        private const int checkQueueInterval = 10000;
+        private const int checkQueueInterval = 20000;
 
         public RabbitMqService(IConnection connection, string queueName, ILogger<RabbitMqService> logger)
         {
@@ -87,11 +87,11 @@ namespace RabbitMqService
                         var body = result.Body.ToArray();
                         var message = Encoding.UTF8.GetString(body);
 
-                        _logger.LogInformation("Received message from queue '{QueueName}': {Message}", _queueName, message);
 
                         var dto = JsonSerializer.Deserialize<QueueDocumentDto>(body);
                         if (dto != null)
                         {
+                            _logger.LogInformation("Received message from queue '{QueueName}'. Message Id: {Id}", _queueName, dto.Id);
                             await onMessageAsync(dto);
                             // Если при обоработке события не было ошибок, то удаляем message из очереди
                             await channel.BasicAckAsync(result.DeliveryTag, false, cancellationToken);

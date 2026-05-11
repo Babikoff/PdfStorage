@@ -16,7 +16,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi;
-using PdfService;
 using RabbitMQ.Client;
 using Repository;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -49,7 +48,6 @@ namespace DocumentStorageWebApi
             services.AddAntiforgery();
 
             services.AddScoped<IDocumentStorageRepository, DocumentStorageRepository>();
-            services.AddScoped<IPdfTextExtractor, PdfTextExtractor>();
 
             // Регистрация сервиса обмена данными
             ReqisterQueueService(services);

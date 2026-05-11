@@ -15,7 +15,7 @@ namespace Repository
             {
                 t.HasCheckConstraint(
                     "ck_documents_data_max_10mb",
-                    "octet_length(data) <= 10 * 1024 * 1024");
+                    "octet_length(file_text) <= 10 * 1024 * 1024");
             });
 
             builder.HasKey(x => x.Id);
@@ -25,8 +25,8 @@ namespace Repository
                 .HasColumnType("uuid")
                 .ValueGeneratedNever();
 
-            builder.Property(x => x.Data)
-                .HasColumnName("data")
+            builder.Property(x => x.FileText)
+                .HasColumnName("file_text")
                 .HasColumnType("bytea")
                 .IsRequired();
 
@@ -43,10 +43,20 @@ namespace Repository
                 .HasColumnName("file_size")
                 .HasColumnType("bigint");
 
-            builder.Property(x => x.CreatedAt)
+            builder.Property(x => x.RecievedAt)
                 .HasColumnName("created_at")
                 .HasColumnType("timestamptz")
                 .HasDefaultValueSql("now()");
+
+            builder.Property(x => x.ProcessingStatus)
+                .HasColumnName("processing_status")
+                .HasColumnType("smallint")
+                .IsRequired();
+
+            builder.Property(x => x.ProcessedAt)
+                .HasColumnName("processed_at")
+                .HasColumnType("timestamptz")
+                .HasDefaultValueSql("null");
         }
     }
 }

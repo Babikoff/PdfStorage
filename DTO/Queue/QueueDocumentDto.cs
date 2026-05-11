@@ -8,7 +8,7 @@ namespace DTO.Queue
     {
         public Guid Id { get; set; }
 
-        public byte[] Data { get; set; } = default!;
+        public byte[] RawFileData { get; set; } = default!;
 
         public string FileName { get; set; }
 
@@ -16,6 +16,8 @@ namespace DTO.Queue
 
         public long? FileSize { get; set; }
 
-        public DateTimeOffset CreatedAt { get; set; }
+        public DateTimeOffset RecievedAt { get; set; }
+
+        public DocumentProcessingStatus ProcessingStatus { get; set; }
     }
 }

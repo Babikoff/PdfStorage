@@ -29,21 +29,18 @@ namespace DocumentStorageWebApi.Controllers
         private readonly IDocumentProcessingQueueService _queueService;
         private readonly IDocumentStorageRepository _repository;
         private readonly IMapper _mapper;
-        private readonly IPdfTextExtractor _pdfTextExtractor;
         private readonly ILogger<DocumentsStorageController> _logger;
 
         public DocumentsStorageController(
             IDocumentProcessingQueueService queueService,
             IDocumentStorageRepository repository, 
             IMapper mapper,
-            IPdfTextExtractor pdfTextExtractor,
             ILogger<DocumentsStorageController> logger
             )
         {
             _queueService = queueService;
             _repository = repository;
             _mapper = mapper;
-            _pdfTextExtractor = pdfTextExtractor;
             _logger = logger;
         }
 
@@ -97,18 +94,7 @@ namespace DocumentStorageWebApi.Controllers
                     return NotFound();
                 }
 
-                switch (document.FileType) 
-                {
-                    case DocumentFileType.Pdf:
-                        return Ok(_pdfTextExtractor.ExtractText(document.Data));
-                    case DocumentFileType.Unknown:
-                        return StatusCode(
-                            StatusCodes.Status501NotImplemented, 
-                            new { message = "Операция не поддерживается для данного типа документов." }
-                            );
-                    default:
-                        return StatusCode(StatusCodes.Status500InternalServerError);
-                }
+                return Ok(document.FileText);
             }
             catch (Exception ex)
             {
@@ -148,31 +134,38 @@ namespace DocumentStorageWebApi.Controllers
                 using var docMemoryStream = new MemoryStream();
                 await file.CopyToAsync(docMemoryStream, cancellationToken);
 
-                var newDocument = new Document
+                var queueDocument = new QueueDocumentDto
                 {
                     Id = Guid.NewGuid(),
-                    Data = docMemoryStream.ToArray(),
+                    RawFileData = docMemoryStream.ToArray(),
                     FileName = Path.GetFileName(file.FileName),
                     FileType = ParseContentType(file.ContentType),
                     FileSize = file.Length,
-                    CreatedAt = DateTimeOffset.UtcNow
+                    RecievedAt = DateTimeOffset.UtcNow,
+                    ProcessingStatus = DocumentProcessingStatus.InQueue,
                 };
 
-                await _queueService.PublishAsync(_mapper.Map<QueueDocumentDto>(newDocument), cancellationToken);
+                var documentEntity = _mapper.Map<Document>(queueDocument);
+                documentEntity.FileText = string.Empty;
+                try
+                {
+                    await _repository.AddAsync(documentEntity);
+                }
+                catch (DbUpdateException ex)
+                {
+                    _logger.LogError(ex, "DB file saving error {FileName}", file.FileName);
+                    // Не смотря на то что при сохранении документа в БД произошла ошибка, продолжим выполнение,
+                    // чтобы сохранить его в очередь и попытаться снова вставить при извлечении из очереди
+                }
 
-                //TODO: изменить возвращаемый ответ. Добавить статус в документ InQueue, Processing/Processed/Inserted
-                var newDocumentDto =_mapper.Map<NewDocumentResponseDto>(newDocument);
+                await _queueService.PublishAsync(_mapper.Map<QueueDocumentDto>(queueDocument), cancellationToken);
+
+                var newDocumentDto =_mapper.Map<NewDocumentResponseDto>(queueDocument);
                 _logger.LogTrace("File {FileName} with Id={Id} added to the queue.", file.FileName, newDocumentDto.Id);
-                return CreatedAtAction(nameof(Get), new { id = newDocument.Id }, newDocumentDto);
-            }
-            catch (DbUpdateException ex)
-            {
-                _logger.LogError(ex, "DB file saving error {FileName}", file.FileName);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    new { message = serverErrorMessageToUser });
+                return CreatedAtAction(nameof(Get), new { id = queueDocument.Id }, newDocumentDto);
             }
             catch (Exception ex) {
-                _logger.LogError(ex, "File saving error {FileName}", file.FileName);
+                _logger.LogError(ex, "File handling error {FileName}", file.FileName);
 
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     new { message = serverErrorMessageToUser });

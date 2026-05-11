@@ -3,6 +3,7 @@ using MappingProfiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using PdfService;
 using RabbitMQ.Client;
 using RabbitMqService;
 using Repository;
@@ -41,6 +42,9 @@ builder.Services.AddSingleton<IDocumentProcessingQueueService>(sp =>
 
 // Регистрация сервиса для долгосрочного хранения данных (базы данных)
 builder.Services.AddScoped<IDocumentStorageRepository, DocumentStorageRepository>();
+
+// Регистрация сервиса извлечения текста из Pdf
+builder.Services.AddScoped<IPdfTextExtractor, PdfTextExtractor>();
 
 // Регистрация мапперов
 builder.Services.AddAutoMapper(cfg => { }, typeof(MappingProfile));

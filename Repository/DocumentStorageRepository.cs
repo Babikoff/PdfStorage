@@ -1,6 +1,7 @@
 ﻿using Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,12 +14,15 @@ namespace Repository
     public class DocumentStorageRepository : IDocumentStorageRepository
     {
         private readonly DocumentStorageDbContext _context;
+        private readonly ILogger<DocumentStorageRepository> _logger;
 
         public DocumentStorageRepository(
-            DocumentStorageDbContext context
+            DocumentStorageDbContext context,
+            ILogger<DocumentStorageRepository> logger
             )
         {
             _context = context;
+            _logger = logger;
         }
 
         public async Task<Document> GetAsync(Guid id)
@@ -53,5 +57,25 @@ namespace Repository
             return document;
         }
 
+        public async Task<Document> AddOrUpdate(Document document)
+        {
+            var existingDoc = await _context.Documents.FindAsync(document.Id);
+            if (existingDoc != null)
+            {
+                existingDoc.FileText = document.FileText;
+                existingDoc.ProcessingStatus = DocumentProcessingStatus.Processed;
+                existingDoc.ProcessedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+                return existingDoc;
+            }
+            else 
+            {
+                _logger.LogWarning("Restoring not existing document with Id {Id}", document.Id);
+                document.ProcessingStatus = DocumentProcessingStatus.Processed;
+                await _context.Documents.AddAsync(document);
+                await _context.SaveChangesAsync();
+                return document;
+            }
+        }
     }
 }

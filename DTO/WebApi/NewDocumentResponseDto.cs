@@ -14,6 +14,9 @@ namespace DTO.WebApi
 
         public long? FileSize { get; set; }
 
-        public DateTimeOffset CreatedAt { get; set; }
+
+        public DateTimeOffset RecievedAt { get; set; }
+
+        public DocumentProcessingStatus ProcessingStatus { get; set; }
     }
 }

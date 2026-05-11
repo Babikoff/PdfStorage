@@ -10,8 +10,8 @@ namespace MappingProfiles
         public MappingProfile()
         {
             CreateMap<QueueDocumentDto, Document>();
+            CreateMap<QueueDocumentDto, NewDocumentResponseDto>();
             CreateMap<Document, QueueDocumentDto>();
-            CreateMap<Document, NewDocumentResponseDto>();
             CreateMap<Document, DocumentListItemDto>();
         }
     }

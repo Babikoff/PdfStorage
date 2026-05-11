@@ -10,5 +10,6 @@ namespace WebApiCommon
         Task<Document> GetAsync(Guid id);
         Task<IEnumerable<Document>> BrowseAsync(int size = 0, int page = 1, string sortBy = null, string sortOrder = null);
         Task<Document> AddAsync(Document document);
+        Task<Document> AddOrUpdate(Document document);
     }
 }
