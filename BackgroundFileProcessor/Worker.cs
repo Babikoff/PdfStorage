@@ -58,8 +58,6 @@ namespace BackgroundFileProcessor
                     documentEntity.ProcessingStatus = DocumentProcessingStatus.Processed;
                     documentEntity.ProcessedAt = DateTime.UtcNow;
                     await _documentStorageRepository.AddOrUpdate(documentEntity);
-
-                    await Task.CompletedTask;
                 },
                 cancellationToken: stoppingToken
             );

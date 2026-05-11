@@ -3,6 +3,7 @@ using System.Text.Json;
 using DTO.Queue;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 using Contracts;
 
 namespace RabbitMqService
@@ -16,8 +17,6 @@ namespace RabbitMqService
         private readonly string _queueName;
         private readonly ILogger<RabbitMqService> _logger;
 
-        private const int checkQueueInterval = 20000;
-
         public RabbitMqService(IConnection connection, string queueName, ILogger<RabbitMqService> logger)
         {
             _connection = connection ?? throw new ArgumentNullException(nameof(connection));
@@ -25,27 +24,23 @@ namespace RabbitMqService
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Отправляет <see cref="QueueDocumentDto"/> в очередь.
+        /// </summary>
         public async Task PublishAsync(QueueDocumentDto message, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(message);
 
             await using var channel = await _connection.CreateChannelAsync(cancellationToken: cancellationToken);
-
-            await channel.QueueDeclareAsync(
-                queue: _queueName,
-                durable: true,
-                exclusive: false,
-                autoDelete: false,
-                arguments: null,
-                cancellationToken: cancellationToken);
+            await DeclareQueue(channel, cancellationToken);
 
             var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
 
             var properties = new BasicProperties
             {
+                ContentType = "application/json",
                 Persistent = true,
-                ContentType = "application/json"
+                DeliveryMode = DeliveryModes.Persistent
             };
 
             await channel.BasicPublishAsync(
@@ -59,13 +54,96 @@ namespace RabbitMqService
             _logger.LogInformation("Published message to queue '{QueueName}': {FileName}", _queueName, message.FileName);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Запускает процесс прослушивания очереди и получения сообщений из неё.
+        /// </summary>
+        /// <param name="onMessageAsync">Callback для получения сообщений в вызываемом коде.</param>
+        /// <param name="cancellationToken"></param>
         public async Task ConsumeAsync(Func<QueueDocumentDto, Task> onMessageAsync, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(onMessageAsync);
 
             await using var channel = await _connection.CreateChannelAsync(cancellationToken: cancellationToken);
+            await DeclareQueue(channel, cancellationToken);
 
+            _logger.LogInformation("Awaiting messages from queue '{QueueName}'.", _queueName);
+
+            // Настраиваем режим получения сообщений
+            await channel.BasicQosAsync(
+                prefetchSize: 0, 
+                prefetchCount: 1, // Будем получать только по одному сообщению за раз
+                global: false, 
+                cancellationToken: cancellationToken
+                );
+
+            // Подписываемся на получение сообщений
+            var consumer = new AsyncEventingBasicConsumer(channel);
+            consumer.ReceivedAsync += async (sender, eventArgs) =>
+            {
+                try
+                {
+                    var body = eventArgs.Body.ToArray();
+                    var dto = JsonSerializer.Deserialize<QueueDocumentDto>(body);
+
+                    if (dto != null)
+                    {
+                        _logger.LogInformation("Received message from queue '{QueueName}'. Message Id: {Id}", _queueName, dto.Id);
+
+                        if (Common.Constants.TestQueueMessageConsumingDelay > 0)
+                        {
+                            await Task.Delay(Common.Constants.TestQueueMessageConsumingDelay);
+                        }
+
+                        // Вызываем callback обработки payload-а сообщения
+                        await onMessageAsync(dto);
+
+                        // Подтверждаем получение сообщения
+                        await channel.BasicAckAsync(eventArgs.DeliveryTag, multiple: false, cancellationToken: cancellationToken);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Deserialized DTO is null. Queue '{QueueName}'", _queueName);
+                        // Отбрасываем неформатные сообщения без повторных попыток получения
+                        await channel.BasicNackAsync(eventArgs.DeliveryTag, multiple: false, requeue: false, cancellationToken: cancellationToken);
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    // При штатном завершении отбрасываем сообщения с опцией повторной попытоки получения (при следующем запуске приложения)
+                    await channel.BasicNackAsync(eventArgs.DeliveryTag, multiple: false, requeue: true, CancellationToken.None);
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error processing message from queue '{QueueName}'. DeliveryTag: {DeliveryTag}", _queueName, eventArgs.DeliveryTag);
+                    // При ошибке отбрасываем сообщения с опцией повторной попытоки получения 
+                    await channel.BasicNackAsync(eventArgs.DeliveryTag, multiple: false, requeue: true, CancellationToken.None);
+                }
+            };
+
+            // Запускаем процесс ожидания и приёма сообщений 
+            _logger.LogInformation("Starting event-driven consumer for queue '{QueueName}'", _queueName);
+            await channel.BasicConsumeAsync(
+                queue: _queueName,
+                autoAck: false, // We manage ack/nack manually
+                consumer: consumer,
+                cancellationToken: cancellationToken);
+
+            // Блокируем выход из метода до получения cancellationToken
+            try
+            {
+                await Task.Delay(Timeout.Infinite, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                // Получен cancellationToken
+            }
+
+            _logger.LogInformation("Stopped consuming from queue '{QueueName}'", _queueName);
+        }
+
+        private async Task DeclareQueue(IChannel channel, CancellationToken cancellationToken)
+        {
             await channel.QueueDeclareAsync(
                 queue: _queueName,
                 durable: true,
@@ -73,53 +151,7 @@ namespace RabbitMqService
                 autoDelete: false,
                 arguments: null,
                 cancellationToken: cancellationToken);
-
-            _logger.LogInformation("Awaiting messages from queue '{QueueName}'. Polling every {checkQueueInterval} msec.", _queueName, checkQueueInterval);
-
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                try
-                {
-                    var result = await channel.BasicGetAsync(_queueName, autoAck: false, cancellationToken: cancellationToken);
-
-                    if (result != null)
-                    {
-                        var body = result.Body.ToArray();
-                        var message = Encoding.UTF8.GetString(body);
-
-
-                        var dto = JsonSerializer.Deserialize<QueueDocumentDto>(body);
-                        if (dto != null)
-                        {
-                            _logger.LogInformation("Received message from queue '{QueueName}'. Message Id: {Id}", _queueName, dto.Id);
-                            await onMessageAsync(dto);
-                            // Если при обоработке события не было ошибок, то удаляем message из очереди
-                            await channel.BasicAckAsync(result.DeliveryTag, false, cancellationToken);
-                        }
-                        else 
-                        {
-                            _logger.LogWarning("Dto is null. Queue '{QueueName}'", _queueName);
-                        }
-                    }
-                    else
-                    {
-                        _logger.LogDebug("No messages in queue '{QueueName}'", _queueName);
-                    }
-                }
-                catch (OperationCanceledException)
-                {
-                    // Graceful shutdown
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error occurred while reading from queue '{QueueName}'", _queueName);
-                }
-
-                await Task.Delay(checkQueueInterval, cancellationToken);
-            }
-
-            _logger.LogInformation("Stopped consuming from queue '{QueueName}'", _queueName);
         }
+
     }
 }

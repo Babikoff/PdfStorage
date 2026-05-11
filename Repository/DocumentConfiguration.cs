@@ -1,4 +1,5 @@
-﻿using Domain;
+﻿using Common;
+using Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -11,12 +12,7 @@ namespace Repository
     {
         public void Configure(EntityTypeBuilder<Document> builder)
         {
-            builder.ToTable("documents", t =>
-            {
-                t.HasCheckConstraint(
-                    "ck_documents_data_max_10mb",
-                    "octet_length(file_text) <= 10 * 1024 * 1024");
-            });
+            builder.ToTable("documents");
 
             builder.HasKey(x => x.Id);
 
