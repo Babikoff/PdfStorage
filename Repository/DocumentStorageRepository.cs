@@ -47,7 +47,7 @@ namespace Repository
                 documents = documents.Skip(size * (page - 1)).Take(size);
             }
 
-            return await documents.ToArrayAsync();
+            return await documents.ToListAsync();
         }
 
         public async Task<Document> AddAsync(Document document)
@@ -57,25 +57,31 @@ namespace Repository
             return document;
         }
 
-        public async Task<Document> AddOrUpdate(Document document)
+        public async Task<Document> AddOrUpdate(Document newDocument)
         {
-            var existingDoc = await _context.Documents.FindAsync(document.Id);
-            if (existingDoc != null)
+            // Для выполнения последовательности из нескольких действий обернём их в транзакцию, чтобы избежать конфликтов 
+            // в случае параллельного выполнения данного метода для одного и того же newDocument.Id
+            using var transaction = await _context.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
+
+            var document = await _context.Documents.FindAsync(newDocument.Id);
+            if (document != null)
             {
-                existingDoc.FileText = document.FileText;
-                existingDoc.ProcessingStatus = DocumentProcessingStatus.Processed;
-                existingDoc.ProcessedAt = DateTime.UtcNow;
-                await _context.SaveChangesAsync();
-                return existingDoc;
-            }
-            else 
-            {
-                _logger.LogWarning("Restoring not existing document with Id {Id}", document.Id);
+                document.FileText = newDocument.FileText;
                 document.ProcessingStatus = DocumentProcessingStatus.Processed;
-                await _context.Documents.AddAsync(document);
+                document.ProcessedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
-                return document;
             }
+            else
+            {
+                _logger.LogWarning("Restoring not existing document with Id {Id}", newDocument.Id);
+                newDocument.ProcessingStatus = DocumentProcessingStatus.Processed;
+                await _context.Documents.AddAsync(newDocument);
+                await _context.SaveChangesAsync();
+                document = newDocument;
+            }
+
+            await transaction.CommitAsync();
+            return document;
         }
     }
 }

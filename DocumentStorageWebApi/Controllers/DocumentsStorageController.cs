@@ -146,7 +146,6 @@ namespace DocumentStorageWebApi.Controllers
                 };
 
                 var documentEntity = _mapper.Map<Document>(queueDocument);
-                documentEntity.FileText = string.Empty;
                 try
                 {
                     await _repository.AddAsync(documentEntity);
@@ -155,7 +154,9 @@ namespace DocumentStorageWebApi.Controllers
                 {
                     _logger.LogError(ex, "DB file saving error {FileName}", file.FileName);
                     // Не смотря на то что при сохранении документа в БД произошла ошибка, продолжим выполнение,
-                    // чтобы сохранить его в очередь и попытаться снова вставить при извлечении из очереди
+                    // чтобы сохранить документ в очередь и попытаться снова вставить при извлечении из очереди.
+                    // Это позволит сохранить полученные данные в случае недоступности БД, но усложняет бизнес-логику.
+                    // Возможно, что это не лучшее место для встраивания частичной отказоустойчивости.
                 }
 
                 await _queueService.PublishAsync(_mapper.Map<QueueDocumentDto>(queueDocument), cancellationToken);
