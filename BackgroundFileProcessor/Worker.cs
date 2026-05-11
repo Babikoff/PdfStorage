@@ -1,9 +1,7 @@
 using AutoMapper;
 using Domain;
 using DTO.Queue;
-using RabbitMqService;
 using Repository;
-using System.Reflection.Metadata;
 using Contracts;
 
 namespace BackgroundFileProcessor

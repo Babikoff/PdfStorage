@@ -6,17 +6,17 @@ namespace DTO.WebApi
 {
     public record NewDocumentResponseDto
     {
-        public Guid Id { get; set; }
+        public Guid Id { get; init; }
 
-        public string FileName { get; set; }
+        public string FileName { get; init; }
 
-        public DocumentFileType FileType { get; set; }
+        public DocumentFileType FileType { get; init; }
 
-        public long? FileSize { get; set; }
+        public long? FileSize { get; init; }
 
 
-        public DateTimeOffset RecievedAt { get; set; }
+        public DateTimeOffset RecievedAt { get; init; }
 
-        public DocumentProcessingStatus ProcessingStatus { get; set; }
+        public DocumentProcessingStatus ProcessingStatus { get; init; }
     }
 }

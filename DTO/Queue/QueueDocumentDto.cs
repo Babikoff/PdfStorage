@@ -1,23 +1,22 @@
 ﻿using Domain;
 using System;
-using System.ComponentModel.DataAnnotations;
 
 namespace DTO.Queue
 {
     public record QueueDocumentDto
     {
-        public Guid Id { get; set; }
+        public Guid Id { get; init; }
 
-        public byte[] RawFileData { get; set; } = default!;
+        public byte[] RawFileData { get; init; } = default!;
 
-        public string FileName { get; set; }
+        public string FileName { get; init; }
 
-        public DocumentFileType FileType { get; set; }
+        public DocumentFileType FileType { get; init; }
 
-        public long? FileSize { get; set; }
+        public long? FileSize { get; init; }
 
-        public DateTimeOffset RecievedAt { get; set; }
+        public DateTimeOffset RecievedAt { get; init; }
 
-        public DocumentProcessingStatus ProcessingStatus { get; set; }
+        public DocumentProcessingStatus ProcessingStatus { get; init; }
     }
 }
