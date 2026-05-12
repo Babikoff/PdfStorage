@@ -209,7 +209,9 @@ services.AddSingleton<IDocumentProcessingQueueService, RabbitMqService.RabbitMqS
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (с поддержкой Compose V2)
 - .NET 8 SDK (для разработки без Docker)
 
-### Рекомендуется запускать solution, установив в качестве стартового проекта docker-compose
+### Рекомендуется запускать solution, установив в качестве стартового проекта docker-compose.
+
+### Перед запуском проекта для загрузки всех зависимых nuget-пакетов рекомендуется сделать Rebuild.
 
 ```bash
 # Клонировать репозиторий
