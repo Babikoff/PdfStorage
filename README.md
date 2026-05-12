@@ -211,7 +211,7 @@ services.AddSingleton<IDocumentProcessingQueueService, RabbitMqService.RabbitMqS
 
 ### Рекомендуется запускать solution, установив в качестве стартового проекта docker-compose.
 
-### Перед запуском проекта для загрузки всех зависимых nuget-пакетов рекомендуется сделать Rebuild.
+### Перед запуском проекта из IDE Visual Studio для загрузки всех зависимых nuget-пакетов рекомендуется сделать Rebuild.
 
 ```bash
 # Клонировать репозиторий
