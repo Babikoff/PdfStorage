@@ -209,7 +209,7 @@ services.AddSingleton<IDocumentProcessingQueueService, RabbitMqService.RabbitMqS
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (с поддержкой Compose V2)
 - .NET 8 SDK (для разработки без Docker)
 
-### Рекомендюется запускать solution установив в качестве стартового проекта docker-compose
+### Рекомендуется запускать solution, установив в качестве стартового проекта docker-compose
 
 ```bash
 # Клонировать репозиторий
@@ -228,6 +228,34 @@ docker compose up --build
 | RabbitMQ Management UI | http://localhost:15672 (логин: `rabbitmq`, пароль: `rabbitmq`) |
 
 ---
+
+## Проверка работы
+
+После запуска решения из IDE Visual Studio должно автоматически открыться окно браузера с адресом http://localhost:5000/swagger.
+
+Нужно кликнуть на метод /UploadDocument, нажать кнопку "Try it now", выбрать файл в появившемся окне:
+![Загрузка PDF файла через Swagger](docs/screenshots/call_UploadDocument.png)
+
+И нажать конпку Execute.
+
+**Внимание! В приложении задано ограничение на максимальный размер Pdf файла - 10 Мб**
+
+После выполнения метода (это должно случиться быстро) должен появиться блок с результатами выполнения:
+
+![Результаты выполнения метода загрузки файла в Swagger](docs/screenshots/call_UploadDocument_output.png)
+
+Если скопировать URL и открыть его в браузере, то можно получить текщий статус обработки документа:
+
+![Статус обработки документа: InQueue](docs/screenshots/call_UploadDocument_check_status1.png)
+
+Такой статус возвращается в течении 20 секунд после отправки документа. **Задержка в 20 секунд установлена для режима выполнения DEBUG для того, чтобы была возможность визуально отследить стадии обработки документа.**
+
+Если через 20 секунд обновить страницу в браузере, то статус документа должен измениться на Processed.
+![Статус обработки документа: Processed](docs/screenshots/call_UploadDocument_check_status2.png)
+
+А с помощью метода /DocumentText можно будет получить текст документа.
+
+
 
 ## Структура решения
 
